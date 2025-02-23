@@ -6,27 +6,11 @@ import checkRayIntersections from './checkRayIntersections';
 import getMouseVector2 from './getMouseVector2';
 import determineCamera from './determineCamera';
 
-import rotateRow from './movements/rotateRow';
-import rotateUn from './movements/rotateUn';
-import rotateColumn from './movements/rotateColumn';
-
+import rotateArr from './movements/rotateArr';
+import getBlocks from './movements/getBlocks';
 export default function Scene(){
   const canvasRef = useRef(null);
-  
-  let [cube,setCube]=useState()
-
-  let [xDirection,setXDirection]=useState()
-  let [yDirection,setYDirection]=useState()
-  
-  let [yInitial,setYInitial]=useState()
-  let [xInitial,setXInitial]=useState()
-
-  let [lockAxis,setLockAxis]=useState(null)
-
-  let [cm,setCM]=useState(null)
-
-  let [camera,setCamera]=useState([])
-
+  let [sGroup,setGroup]=useState([])
   let [winPosition,setWinPostiion]=useState([
     [
       2,1,0,
@@ -47,330 +31,211 @@ export default function Scene(){
   ])
   let [positions,setPositions]=useState([
     [
-      2,1,0,
-      5,3,4,
-      6,7,8
+      1,2,3,
+      4,5,6,
+      7,8,9
     ],
     [
-      17,25,9,
-      18,null,10,
-      19,24,11
+      10,11,12,
+      13,null,14,
+      15,16,17
     ],
     [
-      16,15,12,
-      21,22,13,
-      20,23,14
+      18,19,20,
+      21,22,23,
+      24,25,26
 
     ],
   ])
-  
-  function rotateUn(name,movement){
-    let posOfName={rowPos:null,pos:null}
-    const isNumber = (element) => element == name;
-    positions.map((obj,i)=>{
-      if(-1<obj.findIndex(isNumber)){
-        posOfName={rowPos:i,pos:obj.findIndex(isNumber)}
-      }
-    })
 
-    let rePos
-    if(movement=="forward"){
-      switch(posOfName.pos){
-        case 1:
-        case 2:
-        case 0:
-        rePos=[
-          [
-            positions[2][0],positions[1][0],positions[0][0],
-            positions[0][3],positions[0][4],positions[0][5],
-            positions[0][6],positions[0][7],positions[0][8]
-          ],
-          [
-            positions[2][1],positions[1][1],positions[0][1],
-            positions[1][3],positions[1][4],positions[1][5],
-            positions[1][6],positions[1][7],positions[1][8]
-          ],
-          [
-            positions[2][2],positions[1][2],positions[0][2],
-            positions[2][3],positions[2][4],positions[2][5],
-            positions[2][6],positions[2][7],positions[2][8]
-          ],
-        ] 
-        break
-        case 4:
-        case 5:
-        case 3:
-          rePos=[
-            [
-              positions[0][0],positions[0][1],positions[0][2],
-              positions[2][3],positions[1][3],positions[0][3],
-              positions[0][6],positions[0][7],positions[0][8]
-            ],
-            [
-              positions[1][0],positions[1][1],positions[1][2],
-              positions[2][4],positions[1][4],positions[0][4],
-              positions[1][6],positions[1][7],positions[1][8]
-            ],
-            [
-              positions[2][0],positions[2][1],positions[2][2],
-              positions[2][5],positions[1][5],positions[0][5],
-              positions[2][6],positions[2][7],positions[2][8]
-            ],
-          ] 
-        break
-        case 7:
-        case 8:
-        case 6:
-          rePos=[
-            [
-              positions[0][0],positions[0][1],positions[0][2],
-              positions[0][3],positions[0][4],positions[0][5],
-              positions[2][6],positions[1][6],positions[0][6]
-            ],
-            [
-              positions[1][0],positions[1][1],positions[1][2],
-              positions[1][3],positions[1][4],positions[1][5],
-              positions[2][7],positions[1][7],positions[0][7]
-            ],
-            [
-              positions[2][0],positions[2][1],positions[2][2],
-              positions[2][3],positions[2][4],positions[2][5],
-              positions[2][8],positions[1][8],positions[0][8]
-            ],
-          ] 
-        break
-      }
-    } else {
-      switch(posOfName.pos){
-        case 1:
-        case 2:
-        case 0:
-        rePos=[
-          [
-            positions[0][2],positions[1][2],positions[2][2],
-            positions[0][3],positions[0][4],positions[0][5],
-            positions[0][6],positions[0][7],positions[0][8]
-          ],
-          [
-            positions[0][1],positions[1][1],positions[2][1],
-            positions[1][3],positions[1][4],positions[1][5],
-            positions[1][6],positions[1][7],positions[1][8]
-          ],
-          [
-            positions[0][0],positions[1][0],positions[2][0],
-            positions[2][3],positions[2][4],positions[2][5],
-            positions[2][6],positions[2][7],positions[2][8]
-          ],
-        ] 
-        break
-        case 4:
-        case 5:
-        case 3:
-          rePos=[
-            [
-              positions[0][0],positions[0][1],positions[0][2],
-              positions[0][5],positions[1][5],positions[2][5],
-              positions[0][6],positions[0][7],positions[0][8]
-            ],
-            [
-              positions[1][0],positions[1][1],positions[1][2],
-              positions[0][4],positions[1][4],positions[2][4],
-              positions[1][6],positions[1][7],positions[1][8]
-            ],
-            [
-              positions[2][0],positions[2][1],positions[2][2],
-              positions[0][3],positions[1][3],positions[2][3],
-              positions[2][6],positions[2][7],positions[2][8]
-            ],
-          ] 
-        break
-        case 7:
-        case 8:
-        case 6:
-          rePos=[
-            [
-              positions[0][0],positions[0][1],positions[0][2],
-              positions[0][3],positions[0][4],positions[0][5],
-              positions[0][8],positions[1][8],positions[2][8]
-            ],
-            [
-              positions[1][0],positions[1][1],positions[1][2],
-              positions[1][3],positions[1][4],positions[1][5],
-              positions[0][7],positions[1][7],positions[2][7]
-            ],
-            [
-              positions[2][0],positions[2][1],positions[2][2],
-              positions[2][3],positions[2][4],positions[2][5],
-              positions[0][6],positions[1][6],positions[2][6]
-            ],
-          ] 
-        break
-      }
-    }
-    const movedPositions = rePos.map((c, i) => {
-      return c.map((obj)=>{
-        return obj
-      })
-    });
-    setPositions(movedPositions);    
-
-    let reAlign
-    let selectedArr=[]
-    switch(posOfName.pos){
-      case 0:
-      case 1:
-      case 2:
-        reAlign=0
-      break
-      case 3:
-      case 4:
-      case 5:
-        reAlign=3
-      break
-      case 6:
-      case 7:
-      case 8:
-        reAlign=6
-    }
-    rePos.map((obj,i)=>{
-      obj.map((res,ii)=>{
-        if(ii==0+reAlign||ii==1+reAlign||ii==2+reAlign)    {
-          selectedArr.push(res)
-        }
-      })
-    })
-    return selectedArr
-  }
   useEffect(()=>{
     let func = async () => {
 			const pointer = new THREE.Vector2();
       let raycaster = new THREE.Raycaster();
-
       const scene = new THREE.Scene();
       const color = new THREE.Color().setRGB( 0, 0, 0 );
-      scene.background=color
-
+      const result = await new GLTFLoader().loadAsync('/src/assets/rubikLast.glb');
       const light = new THREE.AmbientLight( 0x404040 );
-      light.intensity=25
-
-      const result = await new GLTFLoader().loadAsync('/src/assets/rubik.glb');
-      scene.add(result.scene)
-      scene.add(light)
-
       const camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
-      camera.position.set( 0, 5, 50 );
       const renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current,
         antialias: true
       });
-      renderer.setSize(window.innerWidth, window.innerHeight)
       const controls = new OrbitControls( camera, renderer.domElement );
+      const group = new THREE.Group();
+      
+      var timer;
+      let lastPoint = {x: null, y: null}
+      let totalMovement = {x: null, y: null}
+      let currentMovement = {x: null, y: null}
+      let rotation
+
+      let camPos
+      let cube
+
+      light.intensity=25
+      scene.background=color
+      scene.add(group)
+
+      scene.add(result.scene)
+      
+      scene.add(light)
+
+      camera.position.set( 0, 5, 50 );
+
+      renderer.setSize(window.innerWidth, window.innerHeight)
       controls.enableZoom=false
       controls.enablePan=false
       controls.update();
+      document.addEventListener('mouseup',mouseUp,false)
 
-      const group = new THREE.Group();
-      scene.add(group)
-      
+      document.addEventListener('mousedown',onMouseClick,false)
+      let axisSelected=null
+      let rotate=null
 
-      document.addEventListener('mousedown',onMouseMove,false)
-      function onMouseMove(e){
+      function onMouseClick(e){
+        group.rotation.x=0
+        group.rotation.y=0
+        group.rotation.z=0
+        rotation=null
+        lastPoint = {x: null, y: null}
+        totalMovement = {x: null, y: null}
+        currentMovement = {x: null, y: null}
+        axisSelected=null
         controls.enabled = false;
-
+        rotate=null
         let mousePointer=getMouseVector2(e,window)
 
         const getFirstValue=true
-        
-        let camPos=determineCamera(camera.position)
-
-        setCM(determineCamera(camera.position))
-
-        setXInitial(e.clientX)
-        setYInitial(e.clientY)
-        setLockAxis(null)
 
         const intersections=checkRayIntersections(mousePointer,camera,raycaster,scene,getFirstValue)
+        
         if(intersections==undefined){
           controls.enabled = true;          
         } else {
-          let cube=intersections.object.name
-          window.addEventListener('mousemove', determineMovement,false)
-          if(lockAxis){
-            moveRubik(lockAxis,cube,camPos)
-          }
+          camPos=determineCamera(camera.position)
+          cube=intersections.object.name
           
+          window.addEventListener('mousemove', mouseMove,false)
         }
       }
-
-      function moveRubik(lockAxis,cube,camPos){
-        if(camPos=='front'){
-          
-        }
-      }
-
-      var timer;
-
-      let lastPoint = {x: null, y: null}
-      let totalMovement = {x: null, y: null}
-
-      function determineMovement(e){
+      function mouseMove(e){
         if(totalMovement.x==null && totalMovement.y==null ){
           totalMovement.x=e.clientX
           totalMovement.y=e.clientY
         }
-        if(e.clientY-totalMovement.y>30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 || e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30){
-          setLockAxis("VER")
-        }
-        if(e.clientX-totalMovement.x>30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 || e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30){
-          setLockAxis("HOR")
-        }
-        if(e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30||  e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30){
-          setLockAxis(null)
-        }
-        setXDirection (
-          e.clientX > lastPoint.x ? 'right'
-          : e.clientX < lastPoint.x ? 'left'
-          : 'none'
-        )
-        setYDirection(
-          e.clientY > lastPoint.y ? 'down'
-          : e.clientY < lastPoint.y ? 'up'
-          : 'none'
-        )
+        if(
+          e.clientY-totalMovement.y>30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null ||
+          e.clientY-totalMovement.y>30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected=='ver'||
+          e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null ||
+          e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected=='ver' 
+        ){
+          // e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null
+          axisSelected="ver"  
+          let toRotate=getBlocks(camPos,positions,cube,axisSelected)
+          arrangeSelection(toRotate)          
+          
 
+          if(currentMovement.y=='up' && rotation<90){
+            rotation+=10
+            group.rotation.x = Math.PI / 180 * rotation;
+
+          } 
+          if(currentMovement.y=='down' && rotation>-90){
+            rotation-=10
+            group.rotation.x = Math.PI / 180 * rotation;          
+          }
+          console.log(rotation)
+
+        }
+        if(
+          e.clientX-totalMovement.x>30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null ||
+          e.clientX-totalMovement.x>30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected=='hor' ||
+          e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null ||
+          e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected=='hor' 
+        ){
+          // e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null 
+          axisSelected="hor"  
+          let toRotate=getBlocks(camPos,positions,cube,axisSelected)
+          arrangeSelection(toRotate)
+          const maxRotation = Math.PI / 2; // 90 degrees
+
+          if(currentMovement.x=='right' && rotate<1 && rotate>-1){
+            group.rotation.y += maxRotation;
+
+
+          }
+          if(currentMovement.x=='left' && rotate<1 && rotate>-1){
+            group.rotation.y -= maxRotation;          
+          } 
+        }
+
+        currentMovement.x=e.clientX > lastPoint.x ? 'right' : e.clientX < lastPoint.x ? 'left' : 'none'
+        currentMovement.y=e.clientY > lastPoint.y ? 'down' : e.clientY < lastPoint.y ? 'up': 'none'
         lastPoint.y= e.clientY
         lastPoint.x= e.clientX
 
         clearTimeout(timer);
         timer=setTimeout(()=>{
-          setYDirection('none')
-          setXDirection('none')
+          currentMovement.y='none'
+          currentMovement.x='none'
         },100);
       }
+      function arrangeSelection(arr){        
+        arr.map((obj)=>{
+          result.scene.children.map((aObj,i)=>{
+            if(aObj.name==obj){
+              group.add(aObj)
+            }
+          })
+        })
+        
+      }
 
-      document.addEventListener('mouseup',()=>{
-        setCube(),
-        setYDirection('none'),
-        setXDirection('none'),
-        totalMovement.x=null
-        totalMovement.y=null
-      },false)
+      function mouseUp(){
+        window.removeEventListener('mousemove', mouseMove, false);
+        rotate=null
+        if(rotation>70){
+          group.rotation.x = Math.PI / 180 * 90;          
+          moveBlocks()
+          return
+        }
+        if(rotation<-70){
+          group.rotation.x = Math.PI / 180 * -90;          
+          moveBlocks()
+          return
+        }
+        cleanUp()
+      }
+      function cleanUp(){
+        if(group.children.length>0){
+          axisSelected=null
 
- 
-      
+          for(let i=0;i<=8;i++){
+            result.scene.add(group.children[0])
+          }
+        }
+      }
+      function moveBlocks(){
+        if(group.children.length>0){
+          axisSelected=null
+          for(let i=0;i<=8;i++){
+            result.scene.attach(group.children[0])
+          }
+        }
+      }
       function animate() {
         requestAnimationFrame(animate);
-
-        // group.rotation.z=Math.PI / 180 * 90
-         
-        // group.remove(...group.children);  // for removing all objects from the group 
-
         renderer.render(scene, camera);
       }
       animate();
   
       return () => {
         renderer.dispose();
+        window.removeEventListener("mouseup", mouseUp,false);
+        window.removeEventListener('mousemove', mouseMove,false)
+        window.removeEventListener('mousedown', onMouseClick,false)
+
       };
     }
     func()  
@@ -378,25 +243,7 @@ export default function Scene(){
   },[])
   return (<>
         <div style={{position:"absolute"}}>
-
-      
-      <p>XDir: {xDirection} YDir: {yDirection}</p>
-      <p>CAMPOS: {cm}</p>
-      <p>AXIS: {lockAxis}</p>
-      <p>Initials: {yInitial} {xInitial}</p>
-
-      {/* {positions.map((obj)=>{
-        return (
-          obj.map((num,i)=>{
-            if(i==2||i==5||i==8){
-              return <><span key={i}>{num},</span><br></br></>
-            } else {
-              return <span key={i}>{num},</span>
-            }
-          })
-        )
-        
-      })} */}
+        <p>{sGroup}</p>
 
       </div>
       <canvas ref={canvasRef} />
