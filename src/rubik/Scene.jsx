@@ -7,6 +7,10 @@ import getMouseVector2 from './getMouseVector2';
 import determineCamera from './determineCamera';
 
 import rotateArr from './movements/rotateArr';
+import rotateColumn from './movements/rotateColumn';
+import rotateRow from './movements/rotateRow';
+
+
 import getBlocks from './movements/getBlocks';
 export default function Scene(){
   const canvasRef = useRef(null);
@@ -62,6 +66,9 @@ export default function Scene(){
         antialias: true
       });
       const controls = new OrbitControls( camera, renderer.domElement );
+      controls.minPolarAngle = Math.PI/9; 
+      controls.maxPolarAngle = Math.PI/1.1; // radians
+
       const group = new THREE.Group();
       
       let direction=null
@@ -88,9 +95,9 @@ export default function Scene(){
       renderer.setSize(window.innerWidth, window.innerHeight)
       controls.enableZoom=false
       controls.enablePan=false
+      
       controls.update();
       document.addEventListener('mouseup',mouseUp,false)
-
       document.addEventListener('mousedown',onMouseClick,false)
 
       function onMouseClick(e){
@@ -113,13 +120,32 @@ export default function Scene(){
         } else {
           camPos=determineCamera(camera.position)
           cube=intersections.object.name
-          
           window.addEventListener('mousemove', mouseMove,false)
         }
       }
-
+      function initialMovement(e){
+        if(initialClickPoint.x-e.clientX>10||
+          e.clientX-initialClickPoint.x>10 ||
+          e.clientX-initialClickPoint.x<-10 ||
+          initialClickPoint.x-e.clientX<-10 
+        ){
+          direction="hor"  
+        }
+        if(initialClickPoint.y-e.clientY>10 ||
+          e.clientY-initialClickPoint.y>10 ||
+          e.clientY-initialClickPoint.y<-10 ||
+          initialClickPoint.y-e.clientY<-10 
+        ){
+          direction="ver"  
+        }
+        if(direction){
+          let toRotate=getBlocks(camPos,positions,cube,direction)
+          axis=toRotate.axis
+          arrangeSelection(toRotate.cubes)          
+        }
+        
+      }
       function mouseMove(e){
-
         currentMovement.x=e.clientX > lastPoint.x ? 'right' : e.clientX < lastPoint.x ? 'left' : 'none'
         currentMovement.y=e.clientY > lastPoint.y ? 'up' : e.clientY < lastPoint.y ? 'down': 'none'
         lastPoint.y= e.clientY
@@ -129,15 +155,18 @@ export default function Scene(){
           initialMovement(e)
         }
         if(direction){
-          if(currentMovement.x=='right' && rotation<90 || currentMovement.y=='up' && rotation<90){
+          if(currentMovement.x=='right' && rotation<90 && camPos!='right' && camPos!='back' || currentMovement.y=='up' && rotation<90 && camPos!='right' && camPos!='back'||
+            currentMovement.y=='down' && camPos=='right' && rotation<90 ||currentMovement.y=='down' && camPos=='back' && rotation<90
+           ){
             if(rotation>70 ){
               rotation+=.2
             } else {
               rotation+=1
             }
-            
           }
-          if(currentMovement.x=='left' && rotation>-90 || currentMovement.y=='down' && rotation>-90){
+          if(currentMovement.x=='left' && rotation>-90 && camPos!='right' && camPos!='back' || currentMovement.y=='down' && rotation>-90 && camPos!='right' && camPos!='back' ||
+            currentMovement.y=='up' && camPos=='right' && rotation>-90  || currentMovement.y=='up' && camPos=='back' && rotation>-90 
+          ){
             if(rotation>70 ){
               rotation-=.2
             } else {
@@ -151,29 +180,6 @@ export default function Scene(){
           currentMovement.y='none'
           currentMovement.x='none'
         },100);
-      }
-      function initialMovement(e){
-        if(initialClickPoint.x-e.clientX>10||
-          e.clientX-initialClickPoint.x>10 ||
-          e.clientX-initialClickPoint.x<-10 ||
-          initialClickPoint.x-e.clientX<-10 
-        ){
-          direction="hor"  
-          axis='y'
-        }
-        if(initialClickPoint.y-e.clientY>10 ||
-          e.clientY-initialClickPoint.y>10 ||
-          e.clientY-initialClickPoint.y<-10 ||
-          initialClickPoint.y-e.clientY<-10 
-        ){
-          direction="ver"  
-          axis='x'
-        }
-        if(direction){
-          let toRotate=getBlocks(camPos,positions,cube,direction)
-          arrangeSelection(toRotate)          
-        }
-        
       }
       function arrangeSelection(arr){        
         arr.map((obj)=>{
@@ -197,22 +203,38 @@ export default function Scene(){
           break
         }
       }
+      function rotatePositions(cube,direction){
+        switch (axis){
+          case 'x':
+            rotateRow(cube,direction)
+          break
+          case 'y':
+            rotateColumn(cube,direction)
+          break
+          case 'z':
+            rotateColumn(cube,direction)
+          break
+        }
+      }
       function mouseUp(){
         window.removeEventListener('mousemove', mouseMove, false);
         direction=null
 
         if(rotation>70){
           rotateCube(axis,90)
+          // rotatePositions(cube,'right')
           commitMovement()
           return
         }
         if(rotation<-70){
           rotateCube(axis,-90)
+          // rotatePositions(cube,'left')
           commitMovement()
           return
         }
         cancelMovement()
       }
+
       function cancelMovement(){
         if(group.children.length>0){
           for(let i=0;i<=8;i++){

@@ -1,4 +1,4 @@
-export default function rotateColumn(arr,movement){
+export default function rotateColumn(arr,name,movement){
     let posOfName={rowPos:null,pos:null}
     const isNumber = (element) => element == name;
 
@@ -8,7 +8,7 @@ export default function rotateColumn(arr,movement){
       }
     })
     let newPos
-    if(movement=="left"){
+    if(movement=="forward"){
       newPos=[ 
         arr[posOfName.rowPos][2],arr[posOfName.rowPos][5],arr[posOfName.rowPos][8],
         arr[posOfName.rowPos][1],arr[posOfName.rowPos][4],arr[posOfName.rowPos][7],
@@ -23,10 +23,8 @@ export default function rotateColumn(arr,movement){
     }
     const movedPositions = arr.map((c, i) => {
       if (i === posOfName.rowPos) {
-        
         return newPos;
       } else {
-        // The rest haven't changed
         return c;
       }
     });
