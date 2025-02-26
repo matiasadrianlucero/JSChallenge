@@ -64,14 +64,16 @@ export default function Scene(){
       const controls = new OrbitControls( camera, renderer.domElement );
       const group = new THREE.Group();
       
+      let direction=null
       var timer;
       let lastPoint = {x: null, y: null}
-      let totalMovement = {x: null, y: null}
+      let initialClickPoint = {x: null, y: null}
       let currentMovement = {x: null, y: null}
       let rotation
-
       let camPos
       let cube
+      let axis
+
 
       light.intensity=25
       scene.background=color
@@ -90,8 +92,6 @@ export default function Scene(){
       document.addEventListener('mouseup',mouseUp,false)
 
       document.addEventListener('mousedown',onMouseClick,false)
-      let axisSelected=null
-      let rotate=null
 
       function onMouseClick(e){
         group.rotation.x=0
@@ -99,17 +99,15 @@ export default function Scene(){
         group.rotation.z=0
         rotation=null
         lastPoint = {x: null, y: null}
-        totalMovement = {x: null, y: null}
+        initialClickPoint = {x: e.clientX, y: e.clientY}
         currentMovement = {x: null, y: null}
-        axisSelected=null
+        direction=null
         controls.enabled = false;
-        rotate=null
+
         let mousePointer=getMouseVector2(e,window)
-
         const getFirstValue=true
-
         const intersections=checkRayIntersections(mousePointer,camera,raycaster,scene,getFirstValue)
-        
+      
         if(intersections==undefined){
           controls.enabled = true;          
         } else {
@@ -119,67 +117,63 @@ export default function Scene(){
           window.addEventListener('mousemove', mouseMove,false)
         }
       }
+
       function mouseMove(e){
-        if(totalMovement.x==null && totalMovement.y==null ){
-          totalMovement.x=e.clientX
-          totalMovement.y=e.clientY
-        }
-        if(
-          e.clientY-totalMovement.y>30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null ||
-          e.clientY-totalMovement.y>30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected=='ver'||
-          e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null ||
-          e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected=='ver' 
-        ){
-          // e.clientY-totalMovement.y<-30 && e.clientX-totalMovement.x<30 && e.clientX-totalMovement.x>-30 && axisSelected==null
-          axisSelected="ver"  
-          let toRotate=getBlocks(camPos,positions,cube,axisSelected)
-          arrangeSelection(toRotate)          
-          
-
-          if(currentMovement.y=='up' && rotation<90){
-            rotation+=10
-            group.rotation.x = Math.PI / 180 * rotation;
-
-          } 
-          if(currentMovement.y=='down' && rotation>-90){
-            rotation-=10
-            group.rotation.x = Math.PI / 180 * rotation;          
-          }
-          console.log(rotation)
-
-        }
-        if(
-          e.clientX-totalMovement.x>30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null ||
-          e.clientX-totalMovement.x>30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected=='hor' ||
-          e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null ||
-          e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected=='hor' 
-        ){
-          // e.clientX-totalMovement.x<-30 && e.clientY-totalMovement.y<30 && e.clientY-totalMovement.y>-30 && axisSelected==null 
-          axisSelected="hor"  
-          let toRotate=getBlocks(camPos,positions,cube,axisSelected)
-          arrangeSelection(toRotate)
-          const maxRotation = Math.PI / 2; // 90 degrees
-
-          if(currentMovement.x=='right' && rotate<1 && rotate>-1){
-            group.rotation.y += maxRotation;
-
-
-          }
-          if(currentMovement.x=='left' && rotate<1 && rotate>-1){
-            group.rotation.y -= maxRotation;          
-          } 
-        }
 
         currentMovement.x=e.clientX > lastPoint.x ? 'right' : e.clientX < lastPoint.x ? 'left' : 'none'
-        currentMovement.y=e.clientY > lastPoint.y ? 'down' : e.clientY < lastPoint.y ? 'up': 'none'
+        currentMovement.y=e.clientY > lastPoint.y ? 'up' : e.clientY < lastPoint.y ? 'down': 'none'
         lastPoint.y= e.clientY
         lastPoint.x= e.clientX
-
+        if(direction==null 
+        ){
+          initialMovement(e)
+        }
+        if(direction){
+          if(currentMovement.x=='right' && rotation<90 || currentMovement.y=='up' && rotation<90){
+            if(rotation>70 ){
+              rotation+=.2
+            } else {
+              rotation+=1
+            }
+            
+          }
+          if(currentMovement.x=='left' && rotation>-90 || currentMovement.y=='down' && rotation>-90){
+            if(rotation>70 ){
+              rotation-=.2
+            } else {
+              rotation-=1
+            }
+          } 
+          rotateCube(axis,rotation)
+        }
         clearTimeout(timer);
         timer=setTimeout(()=>{
           currentMovement.y='none'
           currentMovement.x='none'
         },100);
+      }
+      function initialMovement(e){
+        if(initialClickPoint.x-e.clientX>10||
+          e.clientX-initialClickPoint.x>10 ||
+          e.clientX-initialClickPoint.x<-10 ||
+          initialClickPoint.x-e.clientX<-10 
+        ){
+          direction="hor"  
+          axis='y'
+        }
+        if(initialClickPoint.y-e.clientY>10 ||
+          e.clientY-initialClickPoint.y>10 ||
+          e.clientY-initialClickPoint.y<-10 ||
+          initialClickPoint.y-e.clientY<-10 
+        ){
+          direction="ver"  
+          axis='x'
+        }
+        if(direction){
+          let toRotate=getBlocks(camPos,positions,cube,direction)
+          arrangeSelection(toRotate)          
+        }
+        
       }
       function arrangeSelection(arr){        
         arr.map((obj)=>{
@@ -189,36 +183,45 @@ export default function Scene(){
             }
           })
         })
-        
       }
-
+      function rotateCube(axis,ammount){
+        switch (axis){
+          case 'x':
+            group.rotation.x= Math.PI / 180 *  ammount
+          break
+          case 'y':
+            group.rotation.y= Math.PI / 180 * ammount
+          break
+          case 'z':
+            group.rotation.z= Math.PI / 180 * ammount
+          break
+        }
+      }
       function mouseUp(){
         window.removeEventListener('mousemove', mouseMove, false);
-        rotate=null
+        direction=null
+
         if(rotation>70){
-          group.rotation.x = Math.PI / 180 * 90;          
-          moveBlocks()
+          rotateCube(axis,90)
+          commitMovement()
           return
         }
         if(rotation<-70){
-          group.rotation.x = Math.PI / 180 * -90;          
-          moveBlocks()
+          rotateCube(axis,-90)
+          commitMovement()
           return
         }
-        cleanUp()
+        cancelMovement()
       }
-      function cleanUp(){
+      function cancelMovement(){
         if(group.children.length>0){
-          axisSelected=null
-
           for(let i=0;i<=8;i++){
             result.scene.add(group.children[0])
           }
         }
       }
-      function moveBlocks(){
+      function commitMovement(){
         if(group.children.length>0){
-          axisSelected=null
           for(let i=0;i<=8;i++){
             result.scene.attach(group.children[0])
           }

@@ -1,21 +1,21 @@
 import selectCubes from "./selectCubes"
-export default function getBlocks(camPosition,arr,cube,lockAxis){
+export default function getBlocks(camPosition,arr,cube,direction){
     if(camPosition=='front'){
-      if(lockAxis=='hor'){
+      if(direction=='hor'){
         let toRotate=selectCubes(arr,"row",cube)
         return toRotate
       } 
-      if(lockAxis=='ver'){
+      if(direction=='ver'){
         let toRotate=selectCubes(arr,"col",cube)
         return toRotate
       }
     }
     if(camPosition=='left'){
-      if(lockAxis=='hor'){
+      if(direction=='hor'){
         let toRotate=selectCubes(arr,"row",cube)
         return toRotate
       } 
-      if(lockAxis=='ver'){
+      if(direction=='ver'){
         let toRotate=selectCubes(arr,"array",cube)
         return toRotate
       }

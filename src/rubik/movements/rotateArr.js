@@ -141,33 +141,7 @@ export default function rotateArr(arr,name,movement){
         break
       }
     }
-    // setPositions(rePos)
-    let reAlign
-    let selectedArr=[]
-    switch(posOfName.pos){
-      case 0:
-      case 3:
-      case 6:
-        reAlign=0
-      break
-      case 1:
-      case 4:
-      case 7:
-        reAlign=1
-      break
-      case 2:
-      case 5:
-      case 8:
-        reAlign=2
-    }
-    rePos.map((obj,i)=>{
-      obj.map((res,ii)=>{
-        if(ii==0+reAlign||ii==3+reAlign||ii==6+reAlign)    {
-          selectedArr.push(res)
-        }
-      })
-    })
-    return {movedArr:rePos,selectedCubes:selectedArr}
+    return rePos
   }
 
 //   function rotateColumn(name,movement){

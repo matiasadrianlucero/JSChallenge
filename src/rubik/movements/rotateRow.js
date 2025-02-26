@@ -141,39 +141,8 @@ export default function rotateRow(arr,name,movement){
         break
       }
     }
-    // const movedPositions = rePos.map((c, i) => {
-    //   return c.map((obj)=>{
-    //     return obj
-    //   })
-    // });
-    // setPositions(movedPositions);    
-
-    let reAlign
-    let selectedArr=[]
-    switch(posOfName.pos){
-      case 0:
-      case 1:
-      case 2:
-        reAlign=0
-      break
-      case 3:
-      case 4:
-      case 5:
-        reAlign=3
-      break
-      case 6:
-      case 7:
-      case 8:
-        reAlign=6
-    }
-    rePos.map((obj,i)=>{
-      obj.map((res,ii)=>{
-        if(ii==0+reAlign||ii==1+reAlign||ii==2+reAlign)    {
-          selectedArr.push(res)
-        }
-      })
-    })
-    return {movedArr:rePos,selectedCubes:selectedArr}
+   
+    return rePos
   }
 //   function rotateUn(name,movement){
 //     let posOfName={rowPos:null,pos:null}

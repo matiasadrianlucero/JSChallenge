@@ -31,7 +31,7 @@ export default function rotateColumn(arr,movement){
       }
     });
 
-    return {movedArr:movedPositions,selectedCubes:newPos}
+    return movedPositions
 }
 
 
