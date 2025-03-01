@@ -33,6 +33,27 @@ export default function getBlocks(camPosition,arr,cube,direction){
         axis='x'
       }
     }
+    if(camPosition=='topFront' || camPosition=='bottomFront' || camPosition=='topBack' || camPosition=='bottomBack' ){
+      if(direction=='ver'){
+        selected="col"
+        axis='x'
+      }
+      if(direction=='hor'){
+        selected="array"
+        axis='z'
+      }
+    }
+    if(camPosition=='topRight' || camPosition=='bottomRight' ||camPosition=='topLeft' || camPosition=='bottomLeft'  ){
+      if(direction=='ver'){
+        selected="array"
+        axis='z'
+      }
+      if(direction=='hor'){
+        selected="col"
+        axis='x'
+      }
+    }
+
     toRotate=selectCubes(arr,selected,cube)
     return {cubes:toRotate,axis:axis}
   }

@@ -14,25 +14,6 @@ import rotateRow from './movements/rotateRow';
 import getBlocks from './movements/getBlocks';
 export default function Scene(){
   const canvasRef = useRef(null);
-  let [sGroup,setGroup]=useState([])
-  let [winPosition,setWinPostiion]=useState([
-    [
-      2,1,0,
-      5,3,4,
-      6,7,8
-    ],
-    [
-      17,25,9,
-      18,null,10,
-      19,24,11
-    ],
-    [
-      16,15,12,
-      21,22,13,
-      20,23,14
-
-    ],
-  ])
   let [positions,setPositions]=useState([
     [
       1,2,3,
@@ -51,7 +32,9 @@ export default function Scene(){
 
     ],
   ])
-
+  async function funcSetPositions(arr){
+    setPositions(arr)
+  }
   useEffect(()=>{
     let func = async () => {
 			const pointer = new THREE.Vector2();
@@ -76,11 +59,31 @@ export default function Scene(){
       let lastPoint = {x: null, y: null}
       let initialClickPoint = {x: null, y: null}
       let currentMovement = {x: null, y: null}
+
+      let invertOnAxis = {x: null, y: null}
       let rotation
       let camPos
       let cube
       let axis
 
+      let arrPositions=[
+        [
+          1,2,3,
+          4,5,6,
+          7,8,9
+        ],
+        [
+          10,11,12,
+          13,null,14,
+          15,16,17
+        ],
+        [
+          18,19,20,
+          21,22,23,
+          24,25,26
+    
+        ],
+      ]
 
       light.intensity=25
       scene.background=color
@@ -101,6 +104,7 @@ export default function Scene(){
       document.addEventListener('mousedown',onMouseClick,false)
 
       function onMouseClick(e){
+        
         group.rotation.x=0
         group.rotation.y=0
         group.rotation.z=0
@@ -108,6 +112,7 @@ export default function Scene(){
         lastPoint = {x: null, y: null}
         initialClickPoint = {x: e.clientX, y: e.clientY}
         currentMovement = {x: null, y: null}
+        invertOnAxis= {x: false, y: false}
         direction=null
         controls.enabled = false;
 
@@ -118,7 +123,11 @@ export default function Scene(){
         if(intersections==undefined){
           controls.enabled = true;          
         } else {
-          camPos=determineCamera(camera.position)
+          let res=determineCamera(camera.position)
+          camPos=res.face
+          invertOnAxis.x=res.invertX
+          invertOnAxis.y=res.invertY
+
           cube=intersections.object.name
           window.addEventListener('mousemove', mouseMove,false)
         }
@@ -139,7 +148,7 @@ export default function Scene(){
           direction="ver"  
         }
         if(direction){
-          let toRotate=getBlocks(camPos,positions,cube,direction)
+          let toRotate=getBlocks(camPos,arrPositions,cube,direction)
           axis=toRotate.axis
           arrangeSelection(toRotate.cubes)          
         }
@@ -155,8 +164,8 @@ export default function Scene(){
           initialMovement(e)
         }
         if(direction){
-          if(currentMovement.x=='right' && rotation<90 && camPos!='right' && camPos!='back' || currentMovement.y=='up' && rotation<90 && camPos!='right' && camPos!='back'||
-            currentMovement.y=='down' && camPos=='right' && rotation<90 ||currentMovement.y=='down' && camPos=='back' && rotation<90
+          if(currentMovement.x=='right' && rotation<90 && invertOnAxis.x==false || currentMovement.y=='up' && rotation<90 && invertOnAxis.y==false||
+            currentMovement.x=='left' && rotation<90 && invertOnAxis.x==true || currentMovement.y=='down' && rotation<90 && invertOnAxis.y==true
            ){
             if(rotation>70 ){
               rotation+=.2
@@ -164,8 +173,8 @@ export default function Scene(){
               rotation+=1
             }
           }
-          if(currentMovement.x=='left' && rotation>-90 && camPos!='right' && camPos!='back' || currentMovement.y=='down' && rotation>-90 && camPos!='right' && camPos!='back' ||
-            currentMovement.y=='up' && camPos=='right' && rotation>-90  || currentMovement.y=='up' && camPos=='back' && rotation>-90 
+          if(currentMovement.x=='left' && rotation>-90 && invertOnAxis.x==false||  currentMovement.y=='down' && rotation>-90 && invertOnAxis.y==false||
+             currentMovement.x=='right' && rotation<90 && invertOnAxis.x==true||currentMovement.y=='up' && rotation>-90 && invertOnAxis.y==true
           ){
             if(rotation>70 ){
               rotation-=.2
@@ -181,7 +190,7 @@ export default function Scene(){
           currentMovement.x='none'
         },100);
       }
-      function arrangeSelection(arr){        
+      async function arrangeSelection(arr){        
         arr.map((obj)=>{
           result.scene.children.map((aObj,i)=>{
             if(aObj.name==obj){
@@ -190,7 +199,8 @@ export default function Scene(){
           })
         })
       }
-      function rotateCube(axis,ammount){
+      async function rotateCube(axis,ammount){
+        console.log(axis)
         switch (axis){
           case 'x':
             group.rotation.x= Math.PI / 180 *  ammount
@@ -203,36 +213,58 @@ export default function Scene(){
           break
         }
       }
-      function rotatePositions(cube,direction){
+      async function rotatePositions(cube,direction,axis){
         switch (axis){
           case 'x':
-            rotateRow(cube,direction)
+            arrPositions=rotateArr(arrPositions,cube,direction)
           break
           case 'y':
-            rotateColumn(cube,direction)
+            arrPositions=rotateRow(arrPositions,cube,direction)
           break
           case 'z':
-            rotateColumn(cube,direction)
+            arrPositions=rotateColumn(arrPositions,cube,direction)
           break
         }
       }
       function mouseUp(){
         window.removeEventListener('mousemove', mouseMove, false);
         direction=null
-
         if(rotation>70){
+          rotatePositions(cube,'forward',axis)
           rotateCube(axis,90)
-          // rotatePositions(cube,'right')
           commitMovement()
+          funcSetPositions(arrPositions)
           return
         }
         if(rotation<-70){
+          rotatePositions(cube,'backwards',axis)
           rotateCube(axis,-90)
-          // rotatePositions(cube,'left')
           commitMovement()
+          funcSetPositions(arrPositions)
           return
         }
         cancelMovement()
+      }
+      let scrambleButton=document.getElementById('scramble')
+      scrambleButton.addEventListener('click',scrambleRubik,false)
+      async function scrambleRubik(){
+        let toScramble=document.getElementById('scrambleNumber').value
+        for(let i=0;i<toScramble;i++){
+                 
+          let randomDir=Math.floor(Math.random() * 2)
+          let randomCam=Math.floor(Math.random() * 2)
+          let randomRot=Math.floor(Math.random() * 2)
+          let cubeR=Math.floor(Math.random() * 26) + 1;
+          
+          let cubesTemp=getBlocks('topFront',arrPositions,cubeR,randomDir==0 ? 'ver' : 'hor')
+          
+          await arrangeSelection(cubesTemp.cubes)
+          await rotatePositions(cubeR,randomRot==0 ? 'forward' : 'backwards',cubesTemp.axis)
+          await rotateCube(cubesTemp.axis,randomRot==0 ? 90 : -90)
+          await commitMovement()
+          funcSetPositions(arrPositions)
+
+        }
       }
 
       function cancelMovement(){
@@ -242,10 +274,11 @@ export default function Scene(){
           }
         }
       }
-      function commitMovement(){
+      async function commitMovement(){
         if(group.children.length>0){
-          for(let i=0;i<=8;i++){
+          for(let i=0;i<=8 && group.children[0]!=null;i++){
             result.scene.attach(group.children[0])
+            
           }
         }
       }
@@ -267,9 +300,22 @@ export default function Scene(){
 
   },[])
   return (<>
-        <div style={{position:"absolute"}}>
-        <p>{sGroup}</p>
-
+        <div style={{position:"absolute",color:"white"}}>
+        {positions.map((obj,i)=>{
+           
+          return (
+            <div key={i}> 
+{            obj.map((oobj,ii)=>{
+              return ii==2 ? <span key={ii}>{oobj}<br></br></span> : ii==5 ? <span key={ii}>{oobj}<br></br></span> : <span key={ii}>{oobj}-</span>
+            }) }
+            </div>
+          )
+          
+          
+            
+        })}
+        <input id='scrambleNumber' type='number' min="1"></input>
+        <button id='scramble'>Scramble</button>
       </div>
       <canvas ref={canvasRef} />
 
