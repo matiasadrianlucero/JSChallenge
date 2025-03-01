@@ -2,16 +2,17 @@ import * as THREE from 'three';
 import { useEffect,useRef,useState  } from 'react'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import checkRayIntersections from './checkRayIntersections';
-import getMouseVector2 from './getMouseVector2';
-import determineCamera from './determineCamera';
+
+import checkRayIntersections from './onMouseClick/checkRayIntersections';
+import getMouseVector2 from './onMouseClick/getMouseVector2';
+import determineCamera from './onMouseClick/determineCamera';
 
 import rotateArr from './movements/rotateArr';
 import rotateColumn from './movements/rotateColumn';
 import rotateRow from './movements/rotateRow';
 
 
-import getBlocks from './movements/getBlocks';
+import getBlocks from './selectGroup/getBlocks';
 export default function Scene(){
   const canvasRef = useRef(null);
   let [positions,setPositions]=useState([
@@ -32,7 +33,7 @@ export default function Scene(){
 
     ],
   ])
-  async function funcSetPositions(arr){
+  function funcSetPositions(arr){
     setPositions(arr)
   }
   useEffect(()=>{
@@ -190,7 +191,7 @@ export default function Scene(){
           currentMovement.x='none'
         },100);
       }
-      async function arrangeSelection(arr){        
+      function arrangeSelection(arr){        
         arr.map((obj)=>{
           result.scene.children.map((aObj,i)=>{
             if(aObj.name==obj){
@@ -199,7 +200,7 @@ export default function Scene(){
           })
         })
       }
-      async function rotateCube(axis,ammount){
+      function rotateCube(axis,ammount){
         console.log(axis)
         switch (axis){
           case 'x':
@@ -213,7 +214,7 @@ export default function Scene(){
           break
         }
       }
-      async function rotatePositions(cube,direction,axis){
+      function rotatePositions(cube,direction,axis){
         switch (axis){
           case 'x':
             arrPositions=rotateArr(arrPositions,cube,direction)
@@ -245,27 +246,7 @@ export default function Scene(){
         }
         cancelMovement()
       }
-      let scrambleButton=document.getElementById('scramble')
-      scrambleButton.addEventListener('click',scrambleRubik,false)
-      async function scrambleRubik(){
-        let toScramble=document.getElementById('scrambleNumber').value
-        for(let i=0;i<toScramble;i++){
-                 
-          let randomDir=Math.floor(Math.random() * 2)
-          let randomCam=Math.floor(Math.random() * 2)
-          let randomRot=Math.floor(Math.random() * 2)
-          let cubeR=Math.floor(Math.random() * 26) + 1;
-          
-          let cubesTemp=getBlocks('topFront',arrPositions,cubeR,randomDir==0 ? 'ver' : 'hor')
-          
-          await arrangeSelection(cubesTemp.cubes)
-          await rotatePositions(cubeR,randomRot==0 ? 'forward' : 'backwards',cubesTemp.axis)
-          await rotateCube(cubesTemp.axis,randomRot==0 ? 90 : -90)
-          await commitMovement()
-          funcSetPositions(arrPositions)
 
-        }
-      }
 
       function cancelMovement(){
         if(group.children.length>0){
@@ -274,17 +255,53 @@ export default function Scene(){
           }
         }
       }
-      async function commitMovement(){
+      function commitMovement(){
         if(group.children.length>0){
           for(let i=0;i<=8 && group.children[0]!=null;i++){
             result.scene.attach(group.children[0])
             
           }
         }
+        return true
+      }
+      let scrambleButton=document.getElementById('scramble')
+      scrambleButton.addEventListener('click',scrambleRubik,false)
+      // setInterval(()=>{
+      //   scrambleRubik()
+      // },5000)
+      async function scrambleRubik(){
+
+        let toScramble=document.getElementById('scrambleNumber').value
+        for(let i=0;i<toScramble;i++){
+          let camTemp=Math.floor(Math.random() * 2)
+          let direction=Math.floor(Math.random() * 2)
+          let cubeR=Math.floor(Math.random() * 26) + 1;
+          let rotationTemp=Math.floor(Math.random() * 2)          
+          let cubesTemp=getBlocks(camTemp==0 ? 'topFront' : 'front',arrPositions,cubeR,camTemp=='front' ? 'hor' : direction==0 ? 'ver' : 'hor')
+          
+          arrangeSelection(cubesTemp.cubes)
+          rotatePositions(cubeR,rotationTemp==0 ? 'forward' : 'backwards',cubesTemp.axis)
+          await rotateGradually(rotationTemp,cubesTemp.axis)
+          commitMovement()
+          funcSetPositions(arrPositions)
+          
+          
+          group.rotation.x=0
+          group.rotation.y=0
+          group.rotation.z=0
+        }
+      }
+      async function rotateGradually(rotationTemp,axis){
+        let rotationTotal=0
+        while(rotationTotal<90 ||rotationTotal>-90 ){
+          rotationTotal+=rotationTemp==0 ? 1 : -1
+          rotateCube(axis, rotationTotal)
+        }
       }
       function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
+        
       }
       animate();
   
@@ -314,7 +331,7 @@ export default function Scene(){
           
             
         })}
-        <input id='scrambleNumber' type='number' min="1"></input>
+        <input id='scrambleNumber' defaultValue='12' type='number' min="1"></input>
         <button id='scramble'>Scramble</button>
       </div>
       <canvas ref={canvasRef} />
