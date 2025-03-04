@@ -15,33 +15,13 @@ import rotateRow from './movements/rotateRow';
 import getBlocks from './selectGroup/getBlocks';
 export default function Scene(){
   const canvasRef = useRef(null);
-  let [positions,setPositions]=useState([
-    [
-      1,2,3,
-      4,5,6,
-      7,8,9
-    ],
-    [
-      10,11,12,
-      13,null,14,
-      15,16,17
-    ],
-    [
-      18,19,20,
-      21,22,23,
-      24,25,26
-
-    ],
-  ])
-  function funcSetPositions(arr){
-    setPositions(arr)
-  }
+ 
   useEffect(()=>{
     let func = async () => {
 			const pointer = new THREE.Vector2();
       let raycaster = new THREE.Raycaster();
       const scene = new THREE.Scene();
-      const color = new THREE.Color().setRGB( 0, 0, 0 );
+      const color = new THREE.Color().setRGB( 255, 255, 255 );
       const result = await new GLTFLoader().loadAsync('/src/assets/rubikLast.glb');
       const light = new THREE.AmbientLight( 0x404040 );
       const camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
@@ -57,15 +37,38 @@ export default function Scene(){
       
       let direction=null
       var timer;
+
       let lastPoint = {x: null, y: null}
       let initialClickPoint = {x: null, y: null}
       let currentMovement = {x: null, y: null}
-
       let invertOnAxis = {x: null, y: null}
+
       let rotation
-      let camPos
+      let camPosition
       let cube
+      let selectedCubes
       let axis
+      
+      let movementStorage=[]
+
+      let startingPosition=[
+        [
+          1,2,3,
+          4,5,6,
+          7,8,9
+        ],
+        [
+          10,11,12,
+          13,null,14,
+          15,16,17
+        ],
+        [
+          18,19,20,
+          21,22,23,
+          24,25,26
+    
+        ],
+      ]
 
       let arrPositions=[
         [
@@ -100,15 +103,19 @@ export default function Scene(){
       controls.enableZoom=false
       controls.enablePan=false
       
+      let scrambleButton=document.getElementById('scramble')
+      let revert=document.getElementById('revert')
+
       controls.update();
-      document.addEventListener('mouseup',mouseUp,false)
-      document.addEventListener('mousedown',onMouseClick,false)
+      window.addEventListener('mousedown',onMouseClick,false)
+      window.addEventListener('mouseup',mouseUp,false)
+
+      scrambleButton.addEventListener('click',scrambleRubik,false)
+      revert.addEventListener('click',revertMovements,false)
 
       function onMouseClick(e){
         
-        group.rotation.x=0
-        group.rotation.y=0
-        group.rotation.z=0
+        resetRotation()
         rotation=null
         lastPoint = {x: null, y: null}
         initialClickPoint = {x: e.clientX, y: e.clientY}
@@ -125,7 +132,7 @@ export default function Scene(){
           controls.enabled = true;          
         } else {
           let res=determineCamera(camera.position)
-          camPos=res.face
+          camPosition=res.face
           invertOnAxis.x=res.invertX
           invertOnAxis.y=res.invertY
 
@@ -149,9 +156,9 @@ export default function Scene(){
           direction="ver"  
         }
         if(direction){
-          let toRotate=getBlocks(camPos,arrPositions,cube,direction)
-          axis=toRotate.axis
-          arrangeSelection(toRotate.cubes)          
+          selectedCubes=getBlocks(camPosition,arrPositions,cube,direction)
+          axis=selectedCubes.axis
+          arrangeSelection(selectedCubes.cubes)          
         }
         
       }
@@ -169,18 +176,18 @@ export default function Scene(){
             currentMovement.x=='left' && rotation<90 && invertOnAxis.x==true || currentMovement.y=='down' && rotation<90 && invertOnAxis.y==true
            ){
             if(rotation>70 ){
-              rotation+=.2
+              rotation+=.5
             } else {
-              rotation+=1
+              rotation+=2
             }
           }
           if(currentMovement.x=='left' && rotation>-90 && invertOnAxis.x==false||  currentMovement.y=='down' && rotation>-90 && invertOnAxis.y==false||
              currentMovement.x=='right' && rotation<90 && invertOnAxis.x==true||currentMovement.y=='up' && rotation>-90 && invertOnAxis.y==true
           ){
             if(rotation>70 ){
-              rotation-=.2
+              rotation-=.5
             } else {
-              rotation-=1
+              rotation-=2
             }
           } 
           rotateCube(axis,rotation)
@@ -191,17 +198,7 @@ export default function Scene(){
           currentMovement.x='none'
         },100);
       }
-      function arrangeSelection(arr){        
-        arr.map((obj)=>{
-          result.scene.children.map((aObj,i)=>{
-            if(aObj.name==obj){
-              group.add(aObj)
-            }
-          })
-        })
-      }
       function rotateCube(axis,ammount){
-        console.log(axis)
         switch (axis){
           case 'x':
             group.rotation.x= Math.PI / 180 *  ammount
@@ -213,6 +210,15 @@ export default function Scene(){
             group.rotation.z= Math.PI / 180 * ammount
           break
         }
+      }
+      function arrangeSelection(arr){        
+        arr.map((obj)=>{
+          result.scene.children.map((aObj,i)=>{
+            if(aObj.name==obj){
+              group.add(aObj)
+            }
+          })
+        })
       }
       function rotatePositions(cube,direction,axis){
         switch (axis){
@@ -229,25 +235,25 @@ export default function Scene(){
       }
       function mouseUp(){
         window.removeEventListener('mousemove', mouseMove, false);
-        direction=null
-        if(rotation>70){
-          rotatePositions(cube,'forward',axis)
-          rotateCube(axis,90)
+        if(rotation>70 || rotation<-70){
+
+          rotatePositions(cube,
+            rotation>70 ? 'forward' : 'backwards',
+            axis)
+          storeMovement(camPosition,direction,cube,
+            rotation>70 ? 'forward' : 'backwards'
+          )
+
+          rotateCube(axis,rotation>70 ? 90 : -90)
           commitMovement()
-          funcSetPositions(arrPositions)
-          return
-        }
-        if(rotation<-70){
-          rotatePositions(cube,'backwards',axis)
-          rotateCube(axis,-90)
-          commitMovement()
-          funcSetPositions(arrPositions)
+
+          if(arrPositions.toString()==startingPosition.toString()){
+            movementStorage=[]
+          }
           return
         }
         cancelMovement()
       }
-
-
       function cancelMovement(){
         if(group.children.length>0){
           for(let i=0;i<=8;i++){
@@ -264,38 +270,91 @@ export default function Scene(){
         }
         return true
       }
-      let scrambleButton=document.getElementById('scramble')
-      scrambleButton.addEventListener('click',scrambleRubik,false)
-      // setInterval(()=>{
-      //   scrambleRubik()
-      // },5000)
       async function scrambleRubik(){
-
+        removeAllEvents()
         let toScramble=document.getElementById('scrambleNumber').value
         for(let i=0;i<toScramble;i++){
-          let camTemp=Math.floor(Math.random() * 2)
+          // await scrambleRubik()
+          let randomCamera=Math.floor(Math.random() * 2)
           let direction=Math.floor(Math.random() * 2)
-          let cubeR=Math.floor(Math.random() * 26) + 1;
-          let rotationTemp=Math.floor(Math.random() * 2)          
-          let cubesTemp=getBlocks(camTemp==0 ? 'topFront' : 'front',arrPositions,cubeR,camTemp=='front' ? 'hor' : direction==0 ? 'ver' : 'hor')
+          let randomCube=Math.floor(Math.random() * 26) + 1;
+          let rotationDirection=Math.floor(Math.random() * 2)          
+          await moveAutomatically(
+            randomCamera==0 ? 'topFront' : 'front',
+            randomCamera=='front' ? 'hor' : direction==0 ? 'ver' : 'hor',
+            randomCube,
+            rotationDirection==0 ? 'forward' : 'backwards'
+          )
+          storeMovement(randomCamera==0 ? 'topFront' : 'front',
+            randomCamera=='front' ? 'hor' : direction==0 ? 'ver' : 'hor',
+            randomCube,
+            rotationDirection==0 ? 'forward' : 'backwards')
           
-          arrangeSelection(cubesTemp.cubes)
-          rotatePositions(cubeR,rotationTemp==0 ? 'forward' : 'backwards',cubesTemp.axis)
-          await rotateGradually(rotationTemp,cubesTemp.axis)
-          commitMovement()
-          funcSetPositions(arrPositions)
-          
-          
-          group.rotation.x=0
-          group.rotation.y=0
-          group.rotation.z=0
-        }
+        } 
+        addAllEvents()
       }
-      async function rotateGradually(rotationTemp,axis){
-        let rotationTotal=0
-        while(rotationTotal<90 ||rotationTotal>-90 ){
-          rotationTotal+=rotationTemp==0 ? 1 : -1
-          rotateCube(axis, rotationTotal)
+      function addAllEvents(){
+        window.addEventListener('mousedown', onMouseClick,false)
+
+        window.addEventListener("mouseup", mouseUp,false);
+
+
+
+        scrambleButton.addEventListener('click',scrambleRubik,false)
+        revert.addEventListener('click',revertMovements,false)
+      }
+      function removeAllEvents(){
+        window.removeEventListener("mouseup", mouseUp,false);
+        window.removeEventListener('mousemove', mouseMove,false)
+        window.removeEventListener('mousedown', onMouseClick,false)
+
+        scrambleButton.removeEventListener('click',scrambleRubik,false)
+        revert.removeEventListener('click',revertMovements,false)
+      }
+      function resetRotation(){
+        group.rotation.x=0
+        group.rotation.y=0
+        group.rotation.z=0
+      }
+      async function moveAutomatically(camera,direction,randomCube,rotationDirection){
+        selectedCubes=getBlocks(camera,arrPositions,randomCube,direction)
+        arrangeSelection(selectedCubes.cubes)
+        rotatePositions(randomCube,rotationDirection,selectedCubes.axis)        
+        await rotateGradually(selectedCubes.axis,rotationDirection)
+        commitMovement()
+
+        resetRotation()
+      }
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+      function storeMovement(camera,direction,cube,rotationDirection){
+        movementStorage.push({camera:camera,direction:direction,cube:cube,rotationDirection:rotationDirection})
+      }
+      async function revertMovements(){
+        removeAllEvents()
+        let i=movementStorage.length-1
+        while(i>=0){
+          await moveAutomatically(movementStorage[i].camera,movementStorage[i].direction,movementStorage[i].cube,
+            movementStorage[i].rotationDirection=='forward' ? 'backwards' : 'forward'
+          )
+          --i
+        }
+        addAllEvents()
+        movementStorage=[]
+      }
+      async function rotateGradually(axis,b){
+        let totalRotation=0
+        while(Math.abs(totalRotation) < 90){
+          console.log("rotating")
+          
+          if(b=='forward'){
+            totalRotation+=5
+          } else {
+            totalRotation-=5
+          }
+          rotateCube(axis, totalRotation)
+          await delay(10);
+
+          
         }
       }
       function animate() {
@@ -311,28 +370,20 @@ export default function Scene(){
         window.removeEventListener('mousemove', mouseMove,false)
         window.removeEventListener('mousedown', onMouseClick,false)
 
+        scrambleButton.removeEventListener('click',scrambleRubik,false)
+        revert.removeEventListener('click',revertMovements,false)
       };
     }
     func()  
 
   },[])
   return (<>
-        <div style={{position:"absolute",color:"white"}}>
-        {positions.map((obj,i)=>{
-           
-          return (
-            <div key={i}> 
-{            obj.map((oobj,ii)=>{
-              return ii==2 ? <span key={ii}>{oobj}<br></br></span> : ii==5 ? <span key={ii}>{oobj}<br></br></span> : <span key={ii}>{oobj}-</span>
-            }) }
-            </div>
-          )
-          
-          
-            
-        })}
-        <input id='scrambleNumber' defaultValue='12' type='number' min="1"></input>
+        <div style={{position:"absolute",color:"black"}}>
+
+        <input id='scrambleNumber' defaultValue='3' type='number' min="1"></input>
         <button id='scramble'>Scramble</button>
+        <button id='revert'>revert</button>
+
       </div>
       <canvas ref={canvasRef} />
 
