@@ -3,25 +3,25 @@ export default function determineCamera(camera){
   let invertY=false
   let face
   if(camera.y>-30&&camera.y<30){
-    if(camera.x>-30 &&  camera.x < 30 && 
-      camera.z > 30 
+    if(camera.x>-35 &&  camera.x < 35 && 
+      camera.z > 35 
     ){
       face= "front"
     }
-    if(camera.x > 30 &&
-       camera.z < 30 && camera.z > -30
+    if(camera.x > 35 &&
+       camera.z < 35 && camera.z > -35
        ){
         face= "right"
         invertY=true
     }
-    if(camera.x < 30 && camera.x > -30 &&
-      camera.z < -30 
+    if(camera.x < 35 && camera.x > -35 &&
+      camera.z < -35 
       ){
      face= "back"
      invertY=true
     }
-    if(camera.x < -30 &&
-      camera.z > -30 && camera.z < 30 
+    if(camera.x < -35 &&
+      camera.z > -35 && camera.z < 35 
       ){
      face= "left"
     }

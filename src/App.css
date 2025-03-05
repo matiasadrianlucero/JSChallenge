@@ -1,8 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Allerta&display=swap');
+
 body{
   margin: 0;
-  color: white;
 }
 canvas{
   position: absolute;
   z-index: -1;
+  /* cursor: grab; */
 }
+.buttons{
+  top: 75%;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  gap: 1vw;
+  width: 100%;
+  position: absolute;
+}
+button{
+  border: none;
+  font-family: "Allerta", sans-serif;
+  font-size: calc(1vw + 2vh);
+  font-style: normal;
+  outline: none;
+  transition: color ease .5s;
+  transition: background-color ease .5s;
+  font-weight: 700;
+  background-color: white;
+  transition: all 1s;
+  will-change: font-size;
+
+}
+.animateRGB{
+  animation: multipleRgbText 4s linear infinite;
+}
+
+@keyframes multipleRgbText {
+  0%{
+    transform: rotateY(0deg);
+
+  }
+  16%{
+    transform: rotateY(360deg);
+  }
+  25%{
+    color: red;
+    
+  }
+  33%{
+    transform: rotateY(0deg);
+    transform: rotateX(0deg);
+  }
+  50%{
+    transform: rotateX(360deg);
+    color: blue;
+  }
+  66%{
+    transform: rotateX(0deg);
+    transform: rotateZ(0deg);
+  }
+
+  75%{
+    color: rgb(150, 248, 4);
+  
+  }
+  82%{
+    transform: rotateZ(360deg);
+
+  }
+ 
+  100%{
+    transform: rotateZ(0deg);
+  }
+}
+.revertAnim{
+  animation: rotateBackwards infinite linear .5s;
+}
+@keyframes rotateBackwards{
+  from{
+    transform: rotateZ(0deg);
+  }
+  to{
+    transform: rotateZ(-360deg);
+  }
+}
+ 

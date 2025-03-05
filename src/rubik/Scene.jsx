@@ -97,7 +97,8 @@ export default function Scene(){
       
       scene.add(light)
 
-      camera.position.set( 0, 5, 50 );
+      camera.position.set( 0, 10, 50 );
+      // camera.position.set( -15, 10, 50 );
 
       renderer.setSize(window.innerWidth, window.innerHeight)
       controls.enableZoom=false
@@ -114,7 +115,6 @@ export default function Scene(){
       revert.addEventListener('click',revertMovements,false)
 
       function onMouseClick(e){
-        
         resetRotation()
         rotation=null
         lastPoint = {x: null, y: null}
@@ -176,18 +176,18 @@ export default function Scene(){
             currentMovement.x=='left' && rotation<90 && invertOnAxis.x==true || currentMovement.y=='down' && rotation<90 && invertOnAxis.y==true
            ){
             if(rotation>70 ){
-              rotation+=.5
+              rotation+=.2
             } else {
-              rotation+=2
+              rotation+=1
             }
           }
           if(currentMovement.x=='left' && rotation>-90 && invertOnAxis.x==false||  currentMovement.y=='down' && rotation>-90 && invertOnAxis.y==false||
              currentMovement.x=='right' && rotation<90 && invertOnAxis.x==true||currentMovement.y=='up' && rotation>-90 && invertOnAxis.y==true
           ){
             if(rotation>70 ){
-              rotation-=.5
+              rotation-=.2
             } else {
-              rotation-=2
+              rotation-=1
             }
           } 
           rotateCube(axis,rotation)
@@ -272,8 +272,9 @@ export default function Scene(){
       }
       async function scrambleRubik(){
         removeAllEvents()
-        let toScramble=document.getElementById('scrambleNumber').value
-        for(let i=0;i<toScramble;i++){
+        document.getElementById("scramble").classList.add("animateRGB")
+        // let toScramble=document.getElementById('scrambleNumber').value
+        for(let i=0;i<15;i++){
           // await scrambleRubik()
           let randomCamera=Math.floor(Math.random() * 2)
           let direction=Math.floor(Math.random() * 2)
@@ -291,6 +292,8 @@ export default function Scene(){
             rotationDirection==0 ? 'forward' : 'backwards')
           
         } 
+        document.getElementById("scramble").classList.remove("animateRGB")
+
         addAllEvents()
       }
       function addAllEvents(){
@@ -332,6 +335,8 @@ export default function Scene(){
       async function revertMovements(){
         removeAllEvents()
         let i=movementStorage.length-1
+        document.getElementById("revert").classList.add("revertAnim")
+
         while(i>=0){
           await moveAutomatically(movementStorage[i].camera,movementStorage[i].direction,movementStorage[i].cube,
             movementStorage[i].rotationDirection=='forward' ? 'backwards' : 'forward'
@@ -339,13 +344,13 @@ export default function Scene(){
           --i
         }
         addAllEvents()
+        document.getElementById("revert").classList.remove("revertAnim")
+
         movementStorage=[]
       }
       async function rotateGradually(axis,b){
         let totalRotation=0
-        while(Math.abs(totalRotation) < 90){
-          console.log("rotating")
-          
+        while(Math.abs(totalRotation) < 90){          
           if(b=='forward'){
             totalRotation+=5
           } else {
@@ -353,8 +358,6 @@ export default function Scene(){
           }
           rotateCube(axis, totalRotation)
           await delay(10);
-
-          
         }
       }
       function animate() {
@@ -378,19 +381,15 @@ export default function Scene(){
 
   },[])
   return (<>
-        <div style={{position:"absolute",color:"black"}}>
-
-        <input id='scrambleNumber' defaultValue='3' type='number' min="1"></input>
-        <button id='scramble'>Scramble</button>
-        <button id='revert'>revert</button>
-
-      </div>
-      <canvas ref={canvasRef} />
-
-
-      
-      </>
-  )
+    <div>
+      <h2>matias</h2>
+    </div>
+    <div className='buttons'>
+      <button id='scramble'>Mix</button>
+      <button id='revert'>Reset</button>
+    </div>
+    <canvas ref={canvasRef} />      
+  </>)
 }
 
 
