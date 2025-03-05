@@ -11,6 +11,7 @@ import rotateArr from './movements/rotateArr';
 import rotateColumn from './movements/rotateColumn';
 import rotateRow from './movements/rotateRow';
 
+import githubIcon from '../assets/github.png'
 
 import getBlocks from './selectGroup/getBlocks';
 export default function Scene(){
@@ -22,7 +23,7 @@ export default function Scene(){
       let raycaster = new THREE.Raycaster();
       const scene = new THREE.Scene();
       const color = new THREE.Color().setRGB( 255, 255, 255 );
-      const result = await new GLTFLoader().loadAsync('/src/assets/rubikLast.glb');
+      const result = await new GLTFLoader().loadAsync('/src/assets/rubik.glb');
       const light = new THREE.AmbientLight( 0x404040 );
       const camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
       const renderer = new THREE.WebGLRenderer({
@@ -381,8 +382,8 @@ export default function Scene(){
 
   },[])
   return (<>
-    <div>
-      <h2>matias</h2>
+    <div id='repo'>
+      <img className='githubIcon' src={githubIcon}></img><h2>matiasadrianlucero</h2>
     </div>
     <div className='buttons'>
       <button id='scramble'>Mix</button>
