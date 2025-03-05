@@ -14,6 +14,9 @@ import rotateRow from './movements/rotateRow';
 import githubIcon from '../assets/github.png'
 
 import getBlocks from './selectGroup/getBlocks';
+
+import rubiksCube from '/public/rubik.glb'
+
 export default function Scene(){
   const canvasRef = useRef(null);
  
@@ -23,7 +26,7 @@ export default function Scene(){
       let raycaster = new THREE.Raycaster();
       const scene = new THREE.Scene();
       const color = new THREE.Color().setRGB( 255, 255, 255 );
-      const result = await new GLTFLoader().loadAsync('/src/assets/rubik.glb');
+      const result = await new GLTFLoader().loadAsync(rubiksCube);
       const light = new THREE.AmbientLight( 0x404040 );
       const camera = new THREE.PerspectiveCamera( 30, window.innerWidth / window.innerHeight, 1, 10000 );
       const renderer = new THREE.WebGLRenderer({
@@ -383,7 +386,9 @@ export default function Scene(){
   },[])
   return (<>
     <div id='repo'>
-      <img className='githubIcon' src={githubIcon}></img><h2>matiasadrianlucero</h2>
+      <a href='https://github.com/matiasadrianlucero/Rubik-sCube'>
+        <img className='githubIcon' src={githubIcon}></img><h2>matiasadrianlucero</h2>
+      </a>
     </div>
     <div className='buttons'>
       <button id='scramble'>Mix</button>
