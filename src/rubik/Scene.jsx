@@ -15,7 +15,7 @@ import githubIcon from '../assets/github.png'
 
 import getBlocks from './selectGroup/getBlocks';
 
-import rubiksCube from '/public/rubik.glb'
+import rubiksCube from '/rubik.glb?url'
 
 export default function Scene(){
   const canvasRef = useRef(null);
