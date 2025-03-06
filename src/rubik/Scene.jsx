@@ -167,35 +167,39 @@ export default function Scene(){
         
       }
       function mouseMove(e){
-        currentMovement.x=e.clientX > lastPoint.x ? 'right' : e.clientX < lastPoint.x ? 'left' : 'none'
-        currentMovement.y=e.clientY > lastPoint.y ? 'up' : e.clientY < lastPoint.y ? 'down': 'none'
-        lastPoint.y= e.clientY
-        lastPoint.x= e.clientX
         if(direction==null 
         ){
           initialMovement(e)
         }
-        if(direction){
-          if(currentMovement.x=='right' && rotation<90 && invertOnAxis.x==false || currentMovement.y=='up' && rotation<90 && invertOnAxis.y==false||
-            currentMovement.x=='left' && rotation<90 && invertOnAxis.x==true || currentMovement.y=='down' && rotation<90 && invertOnAxis.y==true
-           ){
-            if(rotation>70 ){
-              rotation+=.2
-            } else {
-              rotation+=1
-            }
+        if(direction=="hor" && currentMovement.x!="none"){
+          if(currentMovement.x=='right' && rotation<90 && invertOnAxis.x==false || 
+            currentMovement.x=='left' && rotation<90 && invertOnAxis.x==true ){
+              rotation+=5
           }
-          if(currentMovement.x=='left' && rotation>-90 && invertOnAxis.x==false||  currentMovement.y=='down' && rotation>-90 && invertOnAxis.y==false||
-             currentMovement.x=='right' && rotation<90 && invertOnAxis.x==true||currentMovement.y=='up' && rotation>-90 && invertOnAxis.y==true
+          if(currentMovement.x=='left' && rotation>-90 && invertOnAxis.x==false ||
+             currentMovement.x=='right' && rotation<90 && invertOnAxis.x==true ){
+            rotation-=5
+          }
+        } 
+        if(direction=="ver" && currentMovement.y!="none"){
+          if(currentMovement.y=='up' && rotation<90 && invertOnAxis.y==false||
+             currentMovement.y=='down' && rotation<90 && invertOnAxis.y==true
+           ){
+              rotation+=5
+          }
+          if(currentMovement.y=='down' && rotation>-90 && invertOnAxis.y==false||
+            currentMovement.y=='up' && rotation>-90 && invertOnAxis.y==true
           ){
-            if(rotation>70 ){
-              rotation-=.2
-            } else {
-              rotation-=1
-            }
-          } 
-          rotateCube(axis,rotation)
-        }
+            rotation-=5
+          }
+        } 
+        rotateCube(axis,rotation)
+        
+        currentMovement.x=e.clientX > lastPoint.x ? 'right' : e.clientX < lastPoint.x ? 'left' : 'none'
+        currentMovement.y=e.clientY > lastPoint.y ? 'up' : e.clientY < lastPoint.y ? 'down': 'none'
+        lastPoint.y= e.clientY
+        lastPoint.x= e.clientX  
+            
         clearTimeout(timer);
         timer=setTimeout(()=>{
           currentMovement.y='none'
@@ -237,28 +241,32 @@ export default function Scene(){
           break
         }
       }
-      function mouseUp(){
+      async function mouseUp(){
         window.removeEventListener('mousemove', mouseMove, false);
-        if(rotation>70 || rotation<-70){
-
+        if(rotation>45 || rotation<-45){
           rotatePositions(cube,
-            rotation>70 ? 'forward' : 'backwards',
+            rotation>45 ? 'forward' : 'backwards',
             axis)
           storeMovement(camPosition,direction,cube,
-            rotation>70 ? 'forward' : 'backwards'
+            rotation>45 ? 'forward' : 'backwards'
           )
-
-          rotateCube(axis,rotation>70 ? 90 : -90)
+          await rotateGradually(axis,rotation>45 ? 'forward' : 'backwards',rotation,2.5)
+          // rotateCube(axis,rotation>70 ? 90 : -90)
           commitMovement()
+          resetRotation()
 
           if(arrPositions.toString()==startingPosition.toString()){
             movementStorage=[]
           }
           return
         }
-        cancelMovement()
+        await cancelMovement()
       }
-      function cancelMovement(){
+      async function cancelMovement(){
+        // await rotateGradually(axis,rotation<45 && rotation>0 ? 'backwards' :
+        //   rotation>-45 &&  rotation<0 ? 'forward' : null
+        //   ,rotation,1)
+
         if(group.children.length>0){
           for(let i=0;i<=8;i++){
             result.scene.add(group.children[0])
@@ -352,18 +360,19 @@ export default function Scene(){
 
         movementStorage=[]
       }
-      async function rotateGradually(axis,b){
-        let totalRotation=0
+      async function rotateGradually(axis,b,rotation,accel){
+        let totalRotation=rotation ?  rotation : 0
         while(Math.abs(totalRotation) < 90){          
           if(b=='forward'){
-            totalRotation+=5
+            totalRotation+=accel ? accel : 10
           } else {
-            totalRotation-=5
+            totalRotation-=accel ? accel : 10
           }
           rotateCube(axis, totalRotation)
           await delay(10);
         }
       }
+      
       function animate() {
         requestAnimationFrame(animate);
         renderer.render(scene, camera);
